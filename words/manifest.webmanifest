@@ -1,0 +1,12 @@
+{
+  "name": "WORDS",
+  "short_name": "WORDS",
+  "description": "Play words. Earn points. Enjoy real rewards.",
+  "start_url": "/words/",
+  "scope": "/words/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#fbf6ec",
+  "theme_color": "#ff5a3c",
+  "icons": [{ "src": "/words/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }]
+}

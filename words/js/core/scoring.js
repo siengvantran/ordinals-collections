@@ -1,0 +1,56 @@
+// WORDS scoring rules (rules version 1). Deterministic: a word's score depends
+// only on the word and whether its path used the day's star tile.
+//
+//   score = sum of letter values + length bonus, doubled if the path uses the star tile
+//
+// Letter values are WORDS' own four tiers, based on how often each letter
+// appears in English words.
+
+export const RULES_VERSION = 1;
+export const MIN_WORD = 3;
+export const MAX_WORD = 10;
+
+const TIERS = {
+  1: 'aeionrtsl',
+  2: 'ducgmhp',
+  3: 'bfywkv',
+  5: 'jxqz'
+};
+
+export const LETTER_VALUES = Object.freeze(
+  Object.fromEntries(
+    Object.entries(TIERS).flatMap(([value, letters]) => [...letters].map((l) => [l, Number(value)]))
+  )
+);
+
+// Bonus for length, indexed by letter count.
+export const LENGTH_BONUS = Object.freeze({ 3: 0, 4: 1, 5: 3, 6: 6, 7: 10, 8: 15, 9: 20, 10: 25 });
+
+export const STAR_MULTIPLIER = 2;
+// Added once to the game score when the day's hidden word is found.
+export const THEME_WORD_BONUS = 15;
+
+export function letterValue(letter) {
+  return LETTER_VALUES[letter] ?? 0;
+}
+
+export function baseWordScore(word) {
+  let s = 0;
+  for (const ch of word) s += letterValue(ch);
+  return s + (LENGTH_BONUS[word.length] ?? LENGTH_BONUS[MAX_WORD]);
+}
+
+export function wordScore(word, usesStar = false) {
+  return baseWordScore(word) * (usesStar ? STAR_MULTIPLIER : 1);
+}
+
+/**
+ * Total game score from accepted submissions [{word, score}], plus the theme
+ * bonus if the theme word is among them.
+ */
+export function gameScore(submissions, themeWord = null) {
+  let total = 0;
+  for (const s of submissions) total += s.score;
+  if (themeWord && submissions.some((s) => s.word === themeWord)) total += THEME_WORD_BONUS;
+  return total;
+}
