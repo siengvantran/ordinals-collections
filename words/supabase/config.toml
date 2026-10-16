@@ -1,0 +1,23 @@
+# Supabase CLI config for the WORDS backend. Run the CLI from the words/
+# folder (`cd words && supabase …`). Replace words.example.com with the
+# domain the app is served from.
+project_id = "words"
+
+[api]
+# Only `public` is exposed, and in it only the svc_* functions, which only
+# service_role (the Edge Function) may execute.
+schemas = ["public"]
+extra_search_path = ["public", "extensions"]
+
+[auth]
+site_url = "https://words.example.com/words/"
+additional_redirect_urls = ["https://words.example.com/words/", "https://words.example.com/words/merchant/", "https://words.example.com/words/admin/", "http://localhost:8765/words/"]
+
+[auth.email]
+enable_signup = true
+double_confirm_changes = true
+
+# The function authenticates the caller itself (anonymous reads are allowed
+# for today's challenge, the leaderboard and the rewards list).
+[functions.words-api]
+verify_jwt = false

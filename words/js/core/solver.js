@@ -1,0 +1,66 @@
+// Dictionary lookups and the grid solver. The dictionary is a sorted array of
+// lower-case words; prefix checks are binary searches, so no trie is built
+// and memory stays at the size of the word list.
+import { TILE_COUNT, neighbours, tileText } from './grid.js';
+import { MIN_WORD, MAX_WORD } from './scoring.js';
+
+/** Parse dictionary text (one word per line) into a sorted, de-duplicated array. */
+export function parseDictionary(text) {
+  const words = text
+    .split(/\r?\n/)
+    .map((w) => w.trim().toLowerCase())
+    .filter((w) => w && /^[a-z]+$/.test(w));
+  return [...new Set(words)].sort();
+}
+
+function lowerBound(words, key) {
+  let lo = 0, hi = words.length;
+  while (lo < hi) {
+    const mid = (lo + hi) >>> 1;
+    if (words[mid] < key) lo = mid + 1;
+    else hi = mid;
+  }
+  return lo;
+}
+
+export function hasWord(words, w) {
+  const i = lowerBound(words, w);
+  return i < words.length && words[i] === w;
+}
+
+export function hasPrefix(words, p) {
+  const i = lowerBound(words, p);
+  return i < words.length && words[i].startsWith(p);
+}
+
+/**
+ * Every dictionary word that can be traced in the grid.
+ * Returns [{word, path, starPath}] sorted by word. `path` is one valid path;
+ * `starPath` is a path through the star tile, or null if none exists.
+ */
+export function solve(tiles, words, star = -1) {
+  const found = new Map();
+  const used = new Array(TILE_COUNT).fill(false);
+  const path = [];
+
+  function visit(i, prefix) {
+    const text = prefix + tileText(tiles[i]);
+    if (text.length > MAX_WORD || !hasPrefix(words, text)) return;
+    used[i] = true;
+    path.push(i);
+    if (text.length >= MIN_WORD && hasWord(words, text)) {
+      let entry = found.get(text);
+      if (!entry) {
+        entry = { word: text, path: path.slice(), starPath: null };
+        found.set(text, entry);
+      }
+      if (!entry.starPath && star >= 0 && path.includes(star)) entry.starPath = path.slice();
+    }
+    for (const n of neighbours(i)) if (!used[n]) visit(n, text);
+    path.pop();
+    used[i] = false;
+  }
+
+  for (let i = 0; i < TILE_COUNT; i++) visit(i, '');
+  return [...found.values()].sort((a, b) => (a.word < b.word ? -1 : a.word > b.word ? 1 : 0));
+}
